@@ -44,14 +44,13 @@ class ProductManager {
 
 		if (indexFound > -1) {
 			this.products.splice(indexFound, 1);
-			console.log("Products array after deletion", this.products);
 		} else {
 			console.log("Product not found");
 		}
 	}
 
 	listOfItems() {
-		//console.log("List all Products:", this.products);
+		this.products;
 	}
 }
 
@@ -104,12 +103,7 @@ const ceramic = new Product(
 	0003
 );
 
-////////////////////////////// ADDING PRODUCTS //////////////////////////////
-
 const productsManager = new ProductManager(simpleStuff.products);
-productsManager.addItem(painting);
-productsManager.addItem(ceramic);
-productsManager.deleteItem(painting);
 
 ////////////////////////////// CREATING A CLASS FOR A CLIENT //////////////////////////////
 
@@ -122,11 +116,16 @@ class Client {
 	}
 }
 
-const jan = new Client("Jan", "john@email.com", "Berlin", "11/3/1970");
-const maria = new Client("Maria", "maria@email.com", "Munchen", "1/12/1984");
+const jan = new Client("Jan", "jankowalski@email.com", "Berlin", "11/3/1970");
+const maria = new Client(
+	"Maria",
+	"mariamarina@email.com",
+	"Munchen",
+	"1/12/1984"
+);
 const sebastian = new Client(
 	"Sebastian",
-	"sebastian@email.com",
+	"sebastiansebastian@email.com",
 	"Heidenheim",
 	"1/3/1992"
 );
@@ -153,13 +152,125 @@ class ClientManager {
 	}
 
 	listClients() {
-		console.log("List all Clients:", this.clients);
+		this.clients;
 	}
 }
 
 const clientManager = new ClientManager(simpleStuff.clients);
-clientManager.addClient(jan, maria, sebastian);
-clientManager.removeClient(maria);
-clientManager.listClients();
-console.log("----------------------SHOP-------------------------");
-console.log(simpleStuff);
+
+////////////////////////////// CREATING A CLASS FOR A CART//////////////////////////////
+
+class Cart {
+	constructor(client) {
+		this.client = { ...client };
+		this.products = [];
+	}
+}
+
+const janCart = new Cart(jan);
+const mariaCart = new Cart(maria);
+const sebastianCart = new Cart(sebastian);
+
+class CartManager {
+	constructor(carts) {
+		this.carts = carts;
+	}
+	addCart(...carts) {
+		this.carts.push(...carts);
+	}
+
+	addProduct(client, product) {
+		const indexCart = this.carts.findIndex(
+			(item) => item.client.email === client.email
+		);
+
+		if (indexCart > -1) {
+			this.carts[indexCart].products.push(product);
+			console.log(
+				"Cart for client after adding a product:",
+				this.carts[indexCart].products
+			);
+		} else console.log("Client not found, no product added");
+	}
+
+	removeProduct(client, product) {
+		const clientIndex = this.carts.findIndex(
+			(item) => item.client.email === client.email
+		);
+
+		if (clientIndex > -1) {
+			const productIndex = this.carts[clientIndex].products.findIndex(
+				(item) => item.code === product.code
+			);
+
+			if (productIndex > -1) {
+				this.carts[clientIndex].products.splice(productIndex, 1);
+			} else {
+				console.log("Product not found. Nothing removed");
+			}
+		} else console.log("Client not found, no product removed");
+	}
+
+	emptyCart(client) {
+		const clientIndex = this.carts.findIndex(
+			(item) => item.client.email === client.email
+		);
+
+		if (clientIndex > -1) {
+			this.carts[clientIndex].products = [];
+		} else console.log("Client not found, no cart was emptied");
+	}
+
+	listProductsForClient(client) {
+		const clientIndex = this.carts.findIndex(
+			(item) => item.client.email === client.email
+		);
+
+		if (clientIndex > -1) {
+			console.log(
+				"Cart for client contains:",
+				this.carts[clientIndex].products
+			);
+		} else console.log("Client not found, no products listed");
+	}
+
+	calcTotalForClient(client) {
+		const clientIndex = this.carts.findIndex(
+			(item) => item.client.email === client.email
+		);
+
+		if (clientIndex > -1) {
+			const total = this.carts[clientIndex].products.reduce(
+				(total, item) => (total += item.price),
+				0
+			);
+
+			console.log("Total for client is:", total);
+		} else console.log("Client not found, no total was calculated");
+	}
+}
+
+const cartManager = new CartManager(simpleStuff.carts);
+cartManager.addCart(janCart, mariaCart, sebastianCart);
+console.log("---------------------------");
+cartManager.addProduct(jan, painting);
+cartManager.addProduct(sebastian, ceramic);
+cartManager.addProduct(maria, painting);
+cartManager.addProduct(maria, handmadeToy);
+cartManager.addProduct("somebody", ceramic);
+console.log("---------------------------");
+cartManager.removeProduct(jan, painting);
+cartManager.removeProduct(jan, "not existed product");
+console.log("---------------------------");
+
+cartManager.emptyCart(jan);
+cartManager.emptyCart("unknown user");
+console.log("---------------------------");
+
+cartManager.listProductsForClient(maria);
+cartManager.listProductsForClient("unknown user");
+console.log("---------------------------");
+cartManager.calcTotalForClient(sebastian);
+cartManager.calcTotalForClient(jan);
+cartManager.calcTotalForClient(maria);
+cartManager.calcTotalForClient("unknown user");
